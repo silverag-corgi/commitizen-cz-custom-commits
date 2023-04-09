@@ -1,0 +1,43 @@
+####################################################################################################
+# package management tool
+####################################################################################################
+[tool.poetry]
+name = "commitizen-cz-custom-commits"
+version = "0.0.0"
+description = "commitizen cz custom commits"
+authors = ["Rem_"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    {include = "cz_custom_commits", from = "src"}
+]
+
+[tool.poetry.build]
+generate-setup-file = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+commitizen = "^2.42.1"
+
+[tool.poetry.group.dev.dependencies]
+
+####################################################################################################
+# build system
+####################################################################################################
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+####################################################################################################
+# automatic changelog generation tool
+####################################################################################################
+[tool.commitizen]
+name = "cz_custom_commits"
+version = "0.0.0"
+version_files = [
+    "pyproject.toml:version"
+]
+tag_format = "v$version"
+update_changelog_on_bump = true
+bump_message = "chore: bump from $current_version to $new_version"
+# major_version_zero = true # for initial development

@@ -45,6 +45,8 @@ tag_format = "v$version"
 update_changelog_on_bump = true
 bump_message = "chore: bump from $current_version to $new_version"
 # major_version_zero = true # for initial development
+github_repo_owner = "silverag-corgi"
+github_repo_name = "commitizen-cz-custom-commits"
 
 ####################################################################################################
 # static code analysis tool - linter

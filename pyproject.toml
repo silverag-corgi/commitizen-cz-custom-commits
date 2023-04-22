@@ -52,8 +52,10 @@ github_repo_name = "commitizen-cz-custom-commits"
 # static code analysis tool - linter
 ####################################################################################################
 [tool.flake8] # pyproject-flake8
-extend-exclude = ".venv,"
+extend-exclude = [
     # defaults: .svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.nox,.eggs,*.egg
+    ".venv",
+]
 extend-ignore = [
     # defaults: E121,E123,E126,E226,E24,E704,W503,W504
     "E203", # E203 whitespace before ':'
@@ -94,10 +96,10 @@ pretty = true
 ####################################################################################################
 # static code analysis tool - formatter
 ####################################################################################################
-[tool.black]
-line-length = 100
-
 [tool.isort]
 line_length = 100
 profile = "black"
 src_paths = ["src", "tests"]
+
+[tool.black]
+line-length = 100

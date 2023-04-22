@@ -1,7 +1,5 @@
 help:
-	@echo usage: make "<target>"
-	@echo args:
-	@echo - target: install, update, lint, format, clean
+	@grep "^[a-zA-Z\-]*:" Makefile | grep -v "grep" | sed -e 's/^/make /' | sed -e 's/://'
 
 install:
 	@echo -------------------- install packages ----------------------------------------------------
@@ -29,4 +27,7 @@ format:
 
 clean:
 	@echo -------------------- clean package -------------------------------------------------------
-	@rm -fr .mypy_cache .pytest_cache .venv
+	@find . | grep .venv$ | xargs rm -fr
+	@find . | grep .mypy_cache$ | xargs rm -fr
+	@find . | grep .pytest_cache$ | xargs rm -fr
+	@find . | grep __pycache__$ | xargs rm -fr

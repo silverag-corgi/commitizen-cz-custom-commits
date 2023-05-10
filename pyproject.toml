@@ -9,7 +9,7 @@ authors = ["Rem_"]
 license = "MIT"
 readme = "README.md"
 packages = [
-    {include = "cz_custom_commits", from = "src"}
+    {include = "commitizen_cz_custom_commits", from = "src"}
 ]
 
 [tool.poetry.build]
@@ -26,7 +26,7 @@ black = "^23.3.0"
 isort = "^5.12.0"
 
 [tool.poetry.plugins."commitizen.plugin"]
-cz_custom_commits = "cz_custom_commits.cz_custom_commits:CustomCommitsCz"
+cz_custom_commits = "commitizen_cz_custom_commits.cz_custom_commits:CustomCommitsCz"
 
 ####################################################################################################
 # build system

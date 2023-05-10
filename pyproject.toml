@@ -17,7 +17,7 @@ generate-setup-file = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
-commitizen = "^2.42.1"
+commitizen = "^3.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pyproject-flake8 = "^6.0.0"
@@ -25,28 +25,15 @@ mypy = "^1.2.0"
 black = "^23.3.0"
 isort = "^5.12.0"
 
+[tool.poetry.plugins."commitizen.plugin"]
+cz_custom_commits = "cz_custom_commits.cz_custom_commits:CustomCommitsCz"
+
 ####################################################################################################
 # build system
 ####################################################################################################
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-####################################################################################################
-# automatic changelog generation tool
-####################################################################################################
-[tool.commitizen]
-name = "cz_custom_commits"
-version = "0.0.0"
-version_files = [
-    "pyproject.toml:version"
-]
-tag_format = "v$version"
-update_changelog_on_bump = true
-bump_message = "chore: bump from $current_version to $new_version"
-# major_version_zero = true # for initial development
-github_repo_owner = "silverag-corgi"
-github_repo_name = "commitizen-cz-custom-commits"
 
 ####################################################################################################
 # static code analysis tool - linter

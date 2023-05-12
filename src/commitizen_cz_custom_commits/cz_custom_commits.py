@@ -19,9 +19,16 @@ class CustomCommitsCz(ConventionalCommitsCz):
         """
 
         super().__init__(config)
+
         github_repo_owner: Any = config.settings.get("github_repo_owner")
+        if github_repo_owner is None:
+            raise Exception("設定ファイルに`github_repo_owner`を設定してください。")
+
         github_repo_name: Any = config.settings.get("github_repo_name")
-        self.github_repo = GitHubRepo(github_repo_owner, github_repo_name)
+        if github_repo_name is None:
+            raise Exception("設定ファイルに`github_repo_name`を設定してください。")
+
+        self.github_repo: GitHubRepo = GitHubRepo(github_repo_owner, github_repo_name)
 
     def changelog_message_builder_hook(
         self,

@@ -48,11 +48,22 @@ class CustomCommitsCz(ConventionalCommitsCz):
             dict: 解析コミット(カスタマイズ済み)
         """
 
-        long_revision: str = commit.rev
-        short_revision: str = long_revision[:7]
         message: str = parsed_message["message"]
-        repo_commit_url: str = self.github_repo.get_commit_url(long_revision)
-        parsed_message["message"] = f"{message} ([{short_revision}]({repo_commit_url}))"
+
+        # IssueIDへのリンクの追加
+        issue_ids: list[Any] = re.compile(r"(#\d+)").findall(message)
+        issue_id: str
+        for issue_id in issue_ids:
+            repo_issue_url: str = self.github_repo.get_issue_url(issue_id[1:])
+            message = re.compile(issue_id).sub(f"[{issue_id}]({repo_issue_url})", message)
+
+        # コミットIDへのリンクの追加
+        long_commit_id: str = commit.rev
+        short_commit_id: str = long_commit_id[:7]
+        repo_commit_url: str = self.github_repo.get_commit_url(long_commit_id)
+        message = f"{message} ([{short_commit_id}]({repo_commit_url}))"
+
+        parsed_message["message"] = message
 
         return parsed_message
 
@@ -129,11 +140,14 @@ class GitHubRepo:
     def url(self) -> str:
         return f"https://github.com/{self.owner}/{self.name}"
 
-    def get_commit_url(self, revision: str) -> str:
-        return f"{self.url}/commit/{revision}"
+    def get_commit_url(self, commit_id: str) -> str:
+        return f"{self.url}/commit/{commit_id}"
 
     def get_tag_url(self, tag: str) -> str:
         return f"{self.url}/releases/tag/{tag}"
 
     def get_diff_url(self, tag1: str, tag2: str) -> str:
         return f"{self.url}/compare/{tag1}...{tag2}"
+
+    def get_issue_url(self, issue_id_without_sharp: str) -> str:
+        return f"{self.url}/issues/{issue_id_without_sharp}"

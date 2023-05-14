@@ -110,7 +110,12 @@ class CustomCommitsCz(ConventionalCommitsCz):
         if github_repo_name is None:
             raise Exception("設定ファイルに`github_repo_name`を設定してください。")
 
+        # GitHubリポジトリの情報
         self.github_repo: GitHubRepo = GitHubRepo(github_repo_owner, github_repo_name)
+        # 破壊的変更の辞書リスト
+        self.breaking_change_dicts: list[dict[str, str]] = []
+
+        return None
 
     def changelog_message_builder_hook(
         self,
@@ -146,6 +151,20 @@ class CustomCommitsCz(ConventionalCommitsCz):
         message = f"{message} ([{short_commit_id}]({repo_commit_url}))"
 
         parsed_message["message"] = message
+
+        # コミット情報のbodyにおける文言`BREAKING CHANGE`の検索
+        # 用途：`changelog_hook()`における破壊的変更へのコミット確認用リンクの追加
+        breaking_change_word: str = "BREAKING CHANGE: "
+        breaking_change_messages: list[str] = re.findall(
+            rf"{breaking_change_word}.*", commit.body, re.MULTILINE
+        )
+        for breaking_change_message in breaking_change_messages:
+            breaking_change_dict: dict[str, str] = {}
+            breaking_change_dict["breaking_change_message"] = breaking_change_message[
+                len(breaking_change_word) :
+            ]
+            breaking_change_dict["commit_id"] = commit.rev
+            self.breaking_change_dicts.append(breaking_change_dict)
 
         return parsed_message
 
@@ -188,6 +207,7 @@ class CustomCommitsCz(ConventionalCommitsCz):
             ```
         """
 
+        # タグへの差分確認用リンクの追加
         tag_pattern: str = r"^#{1,2} (v\d?.\d?.\d?.*) \(.*\)"  # `## v0.0.0 (yyyy-mm-dd)`
         tags: list[str] = re.findall(tag_pattern, full_changelog, re.MULTILINE)
         for tag_index, tag in enumerate(tags):
@@ -203,6 +223,22 @@ class CustomCommitsCz(ConventionalCommitsCz):
             full_changelog = re.sub(
                 search_pattern_of_newer_tag,
                 replacement_str_of_newer_tag,
+                full_changelog,
+                flags=re.MULTILINE,
+            )
+
+        # 破壊的変更へのコミット確認用リンクの追加
+        for breaking_change_dict in self.breaking_change_dicts:
+            breaking_change_message: str = breaking_change_dict["breaking_change_message"]
+            long_commit_id: str = breaking_change_dict["commit_id"]
+            short_commit_id: str = long_commit_id[:7]
+            repo_commit_url: str = self.github_repo.get_commit_url(long_commit_id)
+            breaking_change_message_with_link: str = (
+                f"{breaking_change_message} ([{short_commit_id}]({repo_commit_url}))"
+            )
+            full_changelog = re.sub(
+                rf"{breaking_change_message}$",
+                breaking_change_message_with_link,
                 full_changelog,
                 flags=re.MULTILINE,
             )

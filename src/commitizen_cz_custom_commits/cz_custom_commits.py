@@ -1,14 +1,96 @@
 import re
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from commitizen import git, out
+from commitizen import defaults, git
 from commitizen.config.base_config import BaseConfig
 from commitizen.cz.conventional_commits.conventional_commits import ConventionalCommitsCz
 
 
 class CustomCommitsCz(ConventionalCommitsCz):
-    """カスタムコミットルール"""
+    """
+    カスタムコミットルール
+
+    https://commitizen-tools.github.io/commitizen/customization/
+    """
+
+    # コマンド`bump`：コミットから情報を抽出するための正規表現
+    bump_pattern = (
+        r"^(((feat|fix|perf|refactor|style|build|test|docs|ci|chore)(\(.+\))?(!)?)|\w+!):"
+    )
+    # コマンド`bump`：抽出された情報をSemVerのインクリメントタイプ(MAJOR、MINOR、PATCH)にマッピングする辞書
+    bump_map = OrderedDict(
+        (
+            (r"^.*!", defaults.MAJOR),
+            (r"^feat", defaults.MINOR),
+            (r"^fix", defaults.PATCH),
+            (r"^perf", defaults.PATCH),
+            (r"^refactor", defaults.PATCH),
+            (r"^style", defaults.PATCH),
+            (r"^build", defaults.PATCH),
+            (r"^test", defaults.PATCH),
+            (r"^docs", defaults.PATCH),
+            (r"^ci", defaults.PATCH),
+            (r"^chore", defaults.PATCH),
+        )
+    )
+    bump_map_major_version_zero = OrderedDict(
+        (
+            (r"^.+!$", defaults.MINOR),
+            (r"^feat", defaults.MINOR),
+            (r"^fix", defaults.PATCH),
+            (r"^perf", defaults.PATCH),
+            (r"^refactor", defaults.PATCH),
+            (r"^style", defaults.PATCH),
+            (r"^build", defaults.PATCH),
+            (r"^test", defaults.PATCH),
+            (r"^docs", defaults.PATCH),
+            (r"^ci", defaults.PATCH),
+            (r"^chore", defaults.PATCH),
+        )
+    )
+    # コマンド`changelog`：変更履歴を作成するのに使用される情報を抽出するための正規表現
+    commit_parser = (
+        r"^("
+        + r"(?P<change_type>feat|fix|perf|refactor|style|build|test|docs|ci|chore|BREAKING CHANGE)"
+        + r"(?:\((?P<scope>[^()\r\n]*)\)|\()"
+        + r"?(?P<breaking>!)?"
+        + r"|\w+!"
+        + r")"
+        + r":\s(?P<message>.*)?"
+    )
+    # コマンド`changelog`：どのコミットを変更履歴に含めるかを理解するための正規表現
+    # NOTE `changelog_pattern = bump_pattern`に変更することで、コマンド`bump`にて検知したコミットを変更履歴にて全て表示する
+    changelog_pattern = r"^(((feat|fix|perf|refactor)(\(.+\))?(!)?)|\w+!):"
+    # コマンド`changelog`：変更履歴の見出しにコミットの種類をマッピングする辞書
+    change_type_map = {
+        "BREAKING CHANGE": "BREAKING CHANGE",
+        "feat": "Feat",
+        "fix": "Fix",
+        "perf": "Perf",
+        "refactor": "Refactor",
+        "style": "Style",
+        "build": "Build",
+        "test": "Test",
+        "docs": "Docs",
+        "ci": "CI",
+        "chore": "Chore",
+    }
+    # コマンド`changelog`：変更履歴の見出しを順序付けするのに使用される文字列のリスト
+    change_type_order = [
+        "BREAKING CHANGE",
+        "Feat",
+        "Fix",
+        "Perf",
+        "Refactor",
+        "Style",
+        "Build",
+        "Test",
+        "Docs",
+        "CI",
+        "Chore",
+    ]
 
     def __init__(
         self,
@@ -108,7 +190,6 @@ class CustomCommitsCz(ConventionalCommitsCz):
 
         tag_pattern: str = r"^#{1,2} (v\d?.\d?.\d?.*) \(.*\)"  # `## v0.0.0 (yyyy-mm-dd)`
         tags: list[str] = re.findall(tag_pattern, full_changelog, re.MULTILINE)
-        out.write(f"tags in full_changelog: {tags}\n")
         for tag_index, tag in enumerate(tags):
             search_pattern_of_newer_tag: str = rf"(^#{{1,2}}) ({tag})"
             replacement_str_of_newer_tag: str

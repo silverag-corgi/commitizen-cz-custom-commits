@@ -154,15 +154,18 @@ class CustomCommitsCz(ConventionalCommitsCz):
 
         # コミット情報のbodyにおける文言`BREAKING CHANGE`の検索
         # 用途：`changelog_hook()`における破壊的変更へのコミット確認用リンクの追加
-        breaking_change_word: str = "BREAKING CHANGE: "
-        breaking_change_messages: list[str] = re.findall(
-            rf"{breaking_change_word}.*", commit.body, re.MULTILINE
+        breaking_change_word: str = rf"BREAKING CHANGE:\s*"
+        breaking_change_message_matched_result: Optional[re.Match[str]] = re.search(
+            breaking_change_word, commit.body, re.MULTILINE
         )
-        for breaking_change_message in breaking_change_messages:
+        if breaking_change_message_matched_result is not None:
             breaking_change_dict: dict[str, str] = {}
-            breaking_change_dict["breaking_change_message"] = breaking_change_message[
-                len(breaking_change_word) :
-            ]
+            commit_messages: list[str] = commit.body.splitlines()
+            breaking_change_dict["breaking_change_message"] = re.sub(
+                rf"{breaking_change_word}(.*)",
+                rf"\1",
+                commit_messages[len(commit_messages) - 1],
+            )
             breaking_change_dict["commit_id"] = commit.rev
             self.breaking_change_dicts.append(breaking_change_dict)
 
